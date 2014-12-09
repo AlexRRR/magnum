@@ -10,11 +10,12 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   config.vm.box = "<%= vagrantbox %>"
 
   config.vm.provision :shell, :path => "./.vagrant_puppet/init.sh"
-
+  config.vm.synced_folder "spec/fixtures/hiera/data", "/tmp/data"
   config.vm.provision :puppet do |puppet|
     puppet.manifests_path = "./.vagrant_puppet"
     puppet.module_path = ["./","<%= r10kdirectory %>/<%= r10kenvironment %>/modules"]
     puppet.manifest_file  = "init.pp"
+    puppet.hiera_config_path = "hiera.yaml"
     puppet.options = "--verbose"
   end
 

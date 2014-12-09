@@ -108,6 +108,7 @@ module Magnum
       template 'vagrant/Vagrantfile.erb', target.join('Vagrantfile')
       template 'vagrant/init.sh.erb', target.join('.vagrant_puppet/init.sh')
       template 'vagrant/init.pp.erb', target.join('.vagrant_puppet/init.pp')
+      template 'vagrant/hiera.yaml.erb', target.join('hiera.yaml')
     end
 
     def write_magnum_lastinit
