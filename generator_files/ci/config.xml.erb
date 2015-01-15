@@ -1,0 +1,116 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<project>
+  <actions/>
+  <description>tomcat7 puppet module</description>
+  <logRotator class="hudson.tasks.LogRotator">
+    <daysToKeep>10</daysToKeep>
+    <numToKeep>10</numToKeep>
+    <artifactDaysToKeep>-1</artifactDaysToKeep>
+    <artifactNumToKeep>-1</artifactNumToKeep>
+  </logRotator>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <com.coravy.hudson.plugins.github.GithubProjectProperty plugin="github@1.8">
+      <projectUrl>https://<%= project_url %></projectUrl>
+    </com.coravy.hudson.plugins.github.GithubProjectProperty>
+    <jenkins.plugins.slack.SlackNotifier_-SlackJobProperty plugin="slack@1.2">
+      <room>#syseng</room>
+      <startNotification>true</startNotification>
+      <notifySuccess>true</notifySuccess>
+      <notifyAborted>false</notifyAborted>
+      <notifyNotBuilt>false</notifyNotBuilt>
+      <notifyUnstable>false</notifyUnstable>
+      <notifyFailure>true</notifyFailure>
+      <notifyBackToNormal>false</notifyBackToNormal>
+    </jenkins.plugins.slack.SlackNotifier_-SlackJobProperty>
+  </properties>
+  <scm class="hudson.plugins.git.GitSCM" plugin="git@2.2.1">
+    <configVersion>2</configVersion>
+    <userRemoteConfigs>
+      <hudson.plugins.git.UserRemoteConfig>
+        <url><%= git_url %></url>
+        <credentialsId>27e0402a-6664-4985-a3c5-955fd7876808</credentialsId>
+      </hudson.plugins.git.UserRemoteConfig>
+    </userRemoteConfigs>
+    <branches>
+      <hudson.plugins.git.BranchSpec>
+        <name>*/master</name>
+      </hudson.plugins.git.BranchSpec>
+    </branches>
+    <doGenerateSubmoduleConfigurations>false</doGenerateSubmoduleConfigurations>
+    <submoduleCfg class="list"/>
+    <extensions/>
+  </scm>
+  <canRoam>true</canRoam>
+  <disabled>false</disabled>
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <triggers>
+    <com.dabsquared.gitlabjenkins.GitLabPushTrigger plugin="gitlab-plugin@1.1.3">
+      <spec></spec>
+      <triggerOnPush>true</triggerOnPush>
+      <triggerOnMergeRequest>true</triggerOnMergeRequest>
+      <allowedBranches/>
+    </com.dabsquared.gitlabjenkins.GitLabPushTrigger>
+  </triggers>
+  <concurrentBuild>false</concurrentBuild>
+  <builders>
+    <hudson.tasks.Shell>
+      <command>#!/bin/bash
+        # Set &quot;fail on error&quot; in bash
+        set -e
+        # update r10k on jenkins
+        if ! gem list r10k -i; then gem install r10k; fi
+        #gem install r10k
+        # get r10k snippet from puppet-r10k-infrastructure project in gitlab
+        curl --header &quot;PRIVATE-TOKEN: kjsYuDFzX1H9MhLqLs5L&quot; &quot;https://gitlab-vm-inx01.intra.local.ch/api/v3/projects/34/snippets/3/raw&quot; -o r10k.yaml
+        /usr/local/rvm/gems/ruby-1.9.3-p194@puppet/bin/r10k deploy environment production -c r10k.yaml
+        #install bundle
+        bundle install
+      </command>
+    </hudson.tasks.Shell>
+    <hudson.plugins.rake.Rake plugin="rake@1.8.0">
+      <rakeInstallation>ruby-1.9.3-p194@puppet</rakeInstallation>
+      <rakeFile></rakeFile>
+      <rakeLibDir></rakeLibDir>
+      <rakeWorkingDir></rakeWorkingDir>
+      <tasks>build</tasks>
+      <silent>false</silent>
+      <bundleExec>true</bundleExec>
+    </hudson.plugins.rake.Rake>
+    <hudson.plugins.rake.Rake plugin="rake@1.8.0">
+      <rakeInstallation>ruby-1.9.3-p194@puppet</rakeInstallation>
+      <rakeFile></rakeFile>
+      <rakeLibDir></rakeLibDir>
+      <rakeWorkingDir></rakeWorkingDir>
+      <tasks>spec</tasks>
+      <silent>false</silent>
+      <bundleExec>true</bundleExec>
+    </hudson.plugins.rake.Rake>
+    <hudson.tasks.Shell>
+      <command>#!/bin/bash
+        # Set &quot;fail on error&quot; in bash
+        set -e
+        #deploy via mco (from foremanserver for now)
+        ssh root@foreman-vm-inx01 mco r10k deploy environment production</command>
+      </hudson.tasks.Shell>
+    </builders>
+    <publishers>
+      <hudson.plugins.chucknorris.CordellWalkerRecorder plugin="chucknorris@0.5">
+        <factGenerator/>
+      </hudson.plugins.chucknorris.CordellWalkerRecorder>
+    </publishers>
+    <buildWrappers>
+      <ruby-proxy-object>
+        <ruby-object ruby-class="Jenkins::Plugin::Proxies::BuildWrapper" pluginid="rvm">
+          <object ruby-class="RvmWrapper" pluginid="rvm">
+            <impl pluginid="rvm" ruby-class="String">ruby-1.9.3-p194@puppet</impl>
+          </object>
+          <pluginid pluginid="rvm" ruby-class="String">rvm</pluginid>
+        </ruby-object>
+      </ruby-proxy-object>
+      <com.cloudbees.jenkins.plugins.sshagent.SSHAgentBuildWrapper plugin="ssh-agent@1.4.1">
+        <user>27e0402a-6664-4985-a3c5-955fd7876808</user>
+      </com.cloudbees.jenkins.plugins.sshagent.SSHAgentBuildWrapper>
+    </buildWrappers>
+</project>

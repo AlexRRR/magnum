@@ -7,6 +7,9 @@ module Magnum
     desc 'module', 'Module related tasks. Type \'magnum module\' for more help.'
     subcommand 'module', Module
 
+    desc 'jenkins', 'Jenkins CI related tasks. Type \'magnum jenkins\' for more help.'
+    subcommand 'jenkins', Jenkins
+
     desc 'version', 'Display version and copyright information'
     def version
       puts "#{version_header}\n#{license}"

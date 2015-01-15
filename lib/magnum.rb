@@ -6,6 +6,8 @@ module Magnum
   autoload :CreateGenerator,    'magnum/generators/create_generator'
   autoload :Cli,                'magnum/cli'
   autoload :Module,             'magnum/cli/module'
+  autoload :Ci,                 'magnum/cli/ci'
+  autoload :Jenkins,            'magnum/cli/jenkins'
 
   def self.root
     @root ||= Pathname.new(File.expand_path('../', File.dirname(__FILE__)))
