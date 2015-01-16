@@ -12,6 +12,20 @@ module Magnum
 
     desc 'create', 'Create jenkins CI job for this module'
     def create()
+      generate_config
+      f = File.read('config.xml')
+      user = ask("jenkins username:")
+      pass = ask("jenkins pass:")
+      job_name = self.project_url.split(/\//).last
+      puts("https://jenkins.intra.local.ch/createItem?name=#{job_name}")
+      jobs = RestClient::Resource.new("https://jenkins.intra.local.ch/createItem?name=#{job_name}",
+                                   user,
+                                   pass)
+      jobs.post(f, {:content_type => 'application/xml'})
+    end
+
+    private
+    def generate_config
       begin
         g = Git.open('./')
       rescue ArgumentError
@@ -24,15 +38,11 @@ module Magnum
       self.project_url = git_url.split(/@/)[1].split(/\.git/)[0].sub(/:/,'/')
       puts("create #{git_url}  #{project_url}")
       template 'ci/config.xml.erb', target.join('config.xml')
-      f = File.read('config.xml')
-      user = ask("jenkins username:")
-      pass = ask("jenkins pass:")
-      job_name = self.project_url.split(/\//).last
-      puts("https://jenkins.intra.local.ch/createItem?name=#{job_name}")
-      jobs = RestClient::Resource.new("https://jenkins.intra.local.ch/createItem?name=#{job_name}",
-                                   user,
-                                   pass)
-      jobs.post(f, {:content_type => 'application/xml'})
+    end
+
+    private
+    def clean_config
+
     end
 
     def self.banner(task, namespace = false, subcommand = true)
@@ -48,13 +58,5 @@ module Magnum
       Magnum.root.join('generator_files')
     end
 
-    # private
-    # def options
-    #   original_options = super
-    #   rcfile = File.expand_path('~/.magnumrc')
-    #   return original_options unless File.exists?(rcfile)
-    #   defaults = ::YAML::load_file(rcfile) || {}
-    #   Thor::CoreExt::HashWithIndifferentAccess.new(defaults.merge(original_options))
-    # end
   end
 end
