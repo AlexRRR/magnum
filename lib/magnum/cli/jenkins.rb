@@ -19,7 +19,7 @@ module Magnum
       pass = options.hast_key?('ldap_pass') ? options[:ldap_pass] : ask("jenkins pass:", :echo => false)
       job_name = self.project_url.split(/\//).last
       puts("https://jenkins.intra.local.ch/createItem?name=#{job_name}")
-      jobs = RestClient::Resource.new("https://jenkins.intra.local.ch/createItem?name=#{job_name}",
+      jobs = RestClient::Resource.new("https://jenkins.intra.local.ch/createItem?name=puppet_#{job_name}",
       user,
       pass)
       jobs.post(f, {:content_type => 'application/xml'}){|response, request, result, &block|
